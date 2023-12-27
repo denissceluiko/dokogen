@@ -15,7 +15,7 @@ class Template extends Model
     ];
 
     protected $casts = [
-
+        'bindings' => 'array',
     ];
 
     public function owner() : BelongsTo
