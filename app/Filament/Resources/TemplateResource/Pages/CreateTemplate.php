@@ -17,19 +17,8 @@ class CreateTemplate extends CreateRecord
     {
         $data['owner_id'] = auth()->user()->id;
         $data['hash'] = TemplateService::hash($data['path'], 'templateDisk');
-        $data['bindings'] = TemplateService::bindings($data['path'], 'templateDisk', json: true);
+        $data['bindings'] = TemplateService::bindings($data['path'], 'templateDisk');
 
         return $data;
-    }
-
-    protected function handleRecordUpdate(Model $record, array $data): Model
-    {
-        dd($record);
-
-        $data['hash'] = TemplateService::hash($data['path'], 'templateDisk');
-        $data['bindings'] = TemplateService::bindings($data['path'], 'templateDisk', json: true);
-
-        $record->update($data);
-        return $record;
     }
 }

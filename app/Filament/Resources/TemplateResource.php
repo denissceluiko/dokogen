@@ -11,12 +11,16 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Infolists;
+use Filament\Infolists\Components\Actions\Action;
+use Filament\Infolists\Components\Fieldset;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class TemplateResource extends Resource
 {
@@ -50,7 +54,6 @@ class TemplateResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                // Tables\Actions\CreateAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -65,10 +68,35 @@ class TemplateResource extends Resource
             ->schema([
                 Infolists\Components\TextEntry::make('name'),
                 Infolists\Components\TextEntry::make('naming'),
-                Infolists\Components\TextEntry::make('name_uploaded'),
-                Infolists\Components\TextEntry::make('bindings')
-                    ->copyable()
-                    ->columnSpanFull(),
+                Infolists\Components\TextEntry::make('name_uploaded')
+                    ->label('Template file')
+                    ->suffixAction(
+                        Action::make('Download')
+                            ->icon('heroicon-m-arrow-down-tray')
+                            ->action(function(Template $record) {
+                                return Storage::disk('templateDisk')->download($record->path, $record->name_uploaded);
+                            })
+                    ),
+                Infolists\Components\TextEntry::make('bindings.bindings')
+                    ->label('Fields')
+                    ->limitList(5)
+                    ->expandableLimitedList()
+                    ->listWithLineBreaks(),
+                Infolists\Components\RepeatableEntry::make('bindings.rows')
+                    ->label('Tables')
+                    ->schema(function (Template $record): array {
+                        $tables = [];
+                        foreach ($record->bindings['rows'] as $table) {
+                            $rows = [];
+                            foreach ($table as $col) {
+                                $label = explode('.', $col);
+                                $rows[] = TextEntry::make(array_pop($label));
+                            }
+                            $tables[] = Fieldset::make($table[0])->schema($rows)->columns(count($table));
+                        }
+
+                        return $tables;
+                    })->columnSpanFull(),
             ]);
     }
 
