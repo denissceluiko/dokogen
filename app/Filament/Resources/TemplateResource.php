@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TemplateResource\Pages;
 use App\Filament\Resources\TemplateResource\RelationManagers;
 use App\Models\Template;
+use App\Services\TemplateService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -36,7 +37,7 @@ class TemplateResource extends Resource
                 TextInput::make('naming')->required(),
                 FileUpload::make('path')
                     ->storeFileNamesIn('name_uploaded')
-                    ->disk('templateDisk')
+                    ->disk(TemplateService::$defaultDisk)
                     ->required(),
             ]);
     }
@@ -74,30 +75,46 @@ class TemplateResource extends Resource
                         Action::make('Download')
                             ->icon('heroicon-m-arrow-down-tray')
                             ->action(function(Template $record) {
-                                return Storage::disk('templateDisk')->download($record->path, $record->name_uploaded);
+                                return TemplateService::disk()->download($record->path, $record->name_uploaded);
                             })
                     ),
-                Infolists\Components\TextEntry::make('bindings.bindings')
+                Infolists\Components\TextEntry::make('fields.values')
                     ->label('Fields')
-                    ->limitList(5)
-                    ->expandableLimitedList()
-                    ->listWithLineBreaks(),
-                Infolists\Components\RepeatableEntry::make('bindings.rows')
-                    ->label('Tables')
-                    ->schema(function (Template $record): array {
-                        $tables = [];
-                        foreach ($record->bindings['rows'] as $table) {
-                            $rows = [];
-                            foreach ($table as $col) {
-                                $label = explode('.', $col);
-                                $rows[] = TextEntry::make(array_pop($label));
-                            }
-                            $tables[] = Fieldset::make($table[0])->schema($rows)->columns(count($table));
-                        }
+                    ->placeholder('Template has no fields.')
+                    ->badge()
+                    ->columns(2),
+                Infolists\Components\RepeatableEntry::make('fields.tables')
+                    ->columnSpan(2)
+                    ->placeholder('Template has no tables.')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('columns')
+                            ->badge(),
+                    ])->columns(2),
 
-                        return $tables;
-                    })->columnSpanFull(),
-            ]);
+                Infolists\Components\RepeatableEntry::make('fields.blocks')
+                    ->columnSpan(2)
+                    ->placeholder('Template has no blocks.')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('name'),
+                        Infolists\Components\TextEntry::make('fields')
+                            ->badge(),
+                    ])->columns(2),
+            ])->state(array_merge($infolist->getState()->toArray(), [
+                'fields' => [
+                    'values' => $infolist->record->fields()->names()['values'],
+                    'tables' => array_map(
+                        fn ($table, $name) => ['columns' => $table, 'name' => $name],
+                        $infolist->record->fields()->names()['tables'],
+                        array_keys($infolist->record->fields()->names()['tables']),
+                    ),
+                    'blocks' => array_map(
+                        fn ($block, $name) => ['fields' => $block, 'name' => $name],
+                        $infolist->record->fields()->names()['blocks'],
+                        array_keys($infolist->record->fields()->names()['blocks']),
+                    ),
+                ],
+            ]))->columns(3);
     }
 
     public static function getRelations(): array

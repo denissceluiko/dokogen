@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('path');
             $table->string('hash');
             $table->string('naming');
-            $table->text('bindings')->nullable();
+            $table->text('template_fields')->nullable();
             $table->timestamps();
         });
     }

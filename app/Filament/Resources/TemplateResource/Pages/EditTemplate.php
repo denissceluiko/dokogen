@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TemplateResource\Pages;
 
 use App\Filament\Resources\TemplateResource;
+use App\Models\Template;
 use App\Services\TemplateService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -24,8 +25,10 @@ class EditTemplate extends EditRecord
     {
         // New template file
         if ($record->path !== $data['path']) {
-            $data['hash'] = TemplateService::hash($data['path'], 'templateDisk');
-            $data['bindings'] = TemplateService::bindings($data['path'], 'templateDisk');
+            $template = TemplateService::load($data['path']);
+
+            $data['hash'] = $template->hash();
+            $data[Template::$fieldStorage] = $template->getFields()->blank();
         }
 
         $record->update($data);

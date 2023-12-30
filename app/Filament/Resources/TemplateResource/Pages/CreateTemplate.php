@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TemplateResource\Pages;
 
 use App\Filament\Resources\TemplateResource;
+use App\Models\Template;
 use App\Services\TemplateService;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -16,8 +17,10 @@ class CreateTemplate extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['owner_id'] = auth()->user()->id;
-        $data['hash'] = TemplateService::hash($data['path'], 'templateDisk');
-        $data['bindings'] = TemplateService::bindings($data['path'], 'templateDisk');
+
+        $template = TemplateService::load($data['path']);
+        $data['hash'] = $template->hash();
+        $data[Template::$fieldStorage] = $template->getFields()->blank();
 
         return $data;
     }
