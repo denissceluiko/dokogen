@@ -44,8 +44,8 @@ class DocumentResource extends Resource
                         if (!$template) return [];
 
                         $fields = [];
-                        foreach ($template->bindings['bindings'] as $value) {
-                            $fields[] = TextInput::make($value);
+                        foreach ($template->fields()->blank()['values'] as $key => $value) {
+                            $fields[] = TextInput::make($key);
                         }
                         return $fields;
                     }),
@@ -55,9 +55,9 @@ class DocumentResource extends Resource
                         if (!$template) return [];
 
                         $tables = [];
-                        foreach ($template->bindings['rows'] as $tableName => $columns) {
+                        foreach ($template->fields()->blank()['tables'] as $tableName => $columns) {
                             $table = [];
-                            foreach ($columns as $column) {
+                            foreach ($columns as $column => $value) {
                                 $table[] = TextInput::make($column);
                             }
 
