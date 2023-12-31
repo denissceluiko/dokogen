@@ -5,6 +5,8 @@ namespace App\Filament\Resources\DocumentResource\Pages;
 use App\Filament\Resources\DocumentResource;
 use App\Models\Document;
 use App\Models\Template;
+use App\Services\DocumentService;
+use App\Services\TemplateService;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -17,11 +19,20 @@ class CreateDocument extends CreateRecord
     {
         $template = Template::find($data['template_id']);
 
-        $template->fields()->fillValues($data);
+        $template->template()->fill($data);
 
-        dd($data, $template->fields()->toArray());
+        $path = DocumentService::save($template->template()->compile());
+
+        $data = [
+            'template_id' => $data['template_id'],
+            'template_data' => $template->template()->getFields()->toArray(),
+            'path' => $path,
+            'name' => $template->template()->populate($template->naming),
+            'compiled_at' => now(),
+        ];
 
         $document = Document::create($data);
+
         return $document;
     }
 }

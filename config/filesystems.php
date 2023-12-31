@@ -42,6 +42,12 @@ return [
             'throw' => false,
         ],
 
+        'documentDisk' => [
+            'driver' => 'local',
+            'root' => storage_path('app/documents'),
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -34,7 +34,8 @@ class TemplateResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')->required(),
-                TextInput::make('naming')->required(),
+                TextInput::make('naming')
+                    ->required(),
                 FileUpload::make('path')
                     ->storeFileNamesIn('name_uploaded')
                     ->disk(TemplateService::$defaultDisk)

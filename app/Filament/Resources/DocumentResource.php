@@ -6,6 +6,7 @@ use App\Filament\Resources\DocumentResource\Pages;
 use App\Filament\Resources\DocumentResource\RelationManagers;
 use App\Models\Document;
 use App\Models\Template;
+use App\Services\DocumentService;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -61,7 +64,11 @@ class DocumentResource extends Resource
                                 $table[] = TextInput::make($column);
                             }
 
-                            $tables[] = Repeater::make($tableName)->schema($table)->columns(count($table));
+                            $tables[] = Repeater::make($tableName)
+                                ->schema($table)
+                                ->cloneable()
+                                ->defaultItems(3)
+                                ->columns(count($table));
                         }
                         return $tables;
                     }),
@@ -73,18 +80,33 @@ class DocumentResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('template.name'),
+                Tables\Columns\TextColumn::make('created_at'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('Download')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->action(function(Document $record) {
+                        return DocumentService::disk()->download($record->path, $record->name);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                TextEntry::make('name'),
             ]);
     }
 

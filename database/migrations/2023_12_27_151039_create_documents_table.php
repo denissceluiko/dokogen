@@ -14,10 +14,11 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('path');
+            $table->string('name')->nullable();
+            $table->string('path')->nullable();
             $table->foreignIdFor(Template::class);
-            $table->text('bindings');
+            $table->json('template_data');
+            $table->timestamp('compiled_at')->nullable();
             $table->timestamps();
         });
     }

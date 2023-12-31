@@ -5,7 +5,6 @@ namespace App\Services;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 use Iris\Dokogen\Template;
-use PhpOffice\PhpWord\TemplateProcessor;
 
 class TemplateService
 {
